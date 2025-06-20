@@ -1,0 +1,521 @@
+/* ======== Glavni layout (header, sidebar, content) ======== */
+.admin-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* ======== Header ======== */
+.admin-header {
+  background-color: #eee1d5;
+  padding: 16px 30px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: "Poppins", sans-serif;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Link koji piše "Admin panel" */
+.admin-header-title {
+  color: #3a2c24;
+  font-size: 24px;
+  font-weight: bold;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.admin-header-title:hover {
+  color: #7a5642;
+  transform: scale(1.05);
+}
+
+/* ======== Sidebar toggle dugme (mobilni) ======== */
+.menu-toggle {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #3a2c24;
+}
+
+/* ======== Layout tela ======== */
+.admin-body {
+  display: flex;
+  flex: 1;
+}
+
+/* ======== Sidebar ======== */
+.admin-sidebar {
+  width: 200px;
+  background-color: #f3ebe5;
+  padding: 20px;
+  display: block;
+  border-right: 1px solid #ddd;
+}
+
+.admin-sidebar nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.admin-sidebar nav li {
+  margin-bottom: 10px;
+}
+
+.admin-sidebar nav a {
+  display: block;
+  text-decoration: none;
+  color: #3a2c24;
+  font-weight: 500;
+  padding: 8px;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+}
+
+.admin-sidebar nav a:hover,
+.admin-sidebar nav .active {
+  background-color: #e5d3c5;
+  color: #2e2e2e;
+}
+
+.admin-sidebar ul li.active a {
+  font-weight: bold;
+  color: #c58b5b;
+}
+
+/* ======== Glavni sadržaj ======== */
+.admin-content {
+  flex: 1;
+  padding: 40px 30px;
+  background-color: #fff;
+  overflow-y: auto;
+}
+
+.admin-count {
+  font-style: italic;
+  font-size: 16px;
+  margin: 12px 0 16px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  color: #5a3e2b;
+}
+
+/* ======== Početna strana ======== */
+.admin-home {
+  padding: 40px;
+  text-align: center;
+}
+
+.admin-title {
+  font-size: 32px;
+  margin-bottom: 40px;
+  color: #2e2e2e;
+}
+
+.admin-page {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.admin-section-title {
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+/* ======== Dugmad u početnoj ======== */
+.admin-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+}
+
+.buttonSave {
+  background-color: #4caf50;
+  color: white;
+}
+
+.buttonSave:hover {
+  background-color: #4caf50;
+  transform: scale(1.05);
+}
+
+.admin-buttons button {
+  padding: 20px 40px;
+  font-size: 18px;
+  border: none;
+  border-radius: 12px;
+  background-color: #e5d3c5;
+  color: #3a2c24;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.admin-buttons button:hover {
+  background-color: #d7bfae;
+  transform: scale(1.05);
+}
+
+/* ======== Dugme "Dodaj kategoriju" ======== */
+.admin-add-btn {
+  padding: 12px 24px;
+  font-size: 16px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease;
+  margin-bottom: 20px;
+}
+
+.admin-add-btn:hover {
+  background-color: #45a049;
+  transform: scale(1.03);
+}
+
+/* ======== Tabela kategorija ======== */
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  margin-top: 20px; /*?*/
+}
+
+.admin-table th,
+.admin-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+  vertical-align: middle;
+  word-wrap: break-word;
+}
+
+.admin-thumb {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+/* Drag & Drop vizuelni efekat */
+.draggable-row {
+  cursor: move;
+  background-color: #fff;
+}
+
+.dragging {
+  background-color: #f0eae3 !important;
+}
+
+.slika-preview-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.slika-preview-box {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+  max-width: 90%;
+  max-height: 90%;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.4);
+}
+
+.slika-preview-box img {
+  max-width: 100%;
+  max-height: 70vh;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.slika-preview-box button {
+  padding: 8px 16px;
+  background-color: #444;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  margin: 0 auto; /* ✅ centrira dugme horizontalno */
+  display: block; /* neophodno da bi margin radila */
+}
+
+.admin-button-group {
+  display: flex;
+  gap: 16px; /* rastojanje između dugmadi */
+  margin-bottom: 20px;
+}
+
+.admin-reorder-btn {
+  padding: 12px 24px;
+  font-size: 16px;
+  background-color: #8a5a42; /* tamno braon*/
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: background 0.3s ease, transform 0.2s ease;
+  margin-bottom: 20px;
+}
+
+.admin-reorder-btn:hover {
+  background-color: #a9745a; /* još svetlija nijansa */
+  transform: scale(1.03);
+}
+
+/* ======== Akcijska dugmad: Izmeni & Obriši ======== */
+.admin-edit,
+.admin-delete {
+  padding: 8px 14px;
+  font-size: 14px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  margin-right: 8px;
+  transition: all 0.3s ease;
+}
+
+.admin-edit {
+  background-color: #2196f3;
+  color: white;
+}
+
+.admin-edit:hover {
+  background-color: #1e88e5;
+  transform: scale(1.05);
+}
+
+.admin-delete {
+  background-color: #f44336;
+  color: white;
+}
+
+.admin-delete:hover {
+  background-color: #e53935;
+  transform: scale(1.05);
+}
+
+/* ======== Modal prozor ======== */
+.admin-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.admin-modal {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.admin-modal h3 {
+  margin-bottom: 20px;
+  font-size: 18px;
+  color: #333;
+}
+
+.admin-modal input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+/* Dugmad unutar modala */
+.admin-modal-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.admin-modal-actions button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.admin-modal-actions button:hover {
+  opacity: 0.9;
+}
+
+.kategorije-lista {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.kategorija-kartica {
+  width: 100%;
+  max-width: 240px;
+  background: #f9f4f1;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s ease;
+}
+
+.kategorija-kartica:hover {
+  transform: scale(1.02);
+}
+
+.kategorija-slika {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.kategorija-slika-placeholder {
+  width: 100%;
+  height: 150px;
+  background: #ddd;
+  border-radius: 8px;
+  line-height: 150px;
+  color: #666;
+  margin-bottom: 12px;
+}
+
+.kartica-dugmad {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+/* ======== Animacija modala ======== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ======== Responsivnost ======== */
+@media (max-width: 768px) {
+  .admin-table {
+    display: block;
+    width: 100%;
+  }
+
+  .admin-table thead {
+    display: none;
+  }
+
+  .admin-table tbody {
+    display: block;
+  }
+
+  .admin-table tr {
+    display: flex;
+    flex-direction: column;
+    border-bottom: 1px solid #ccc;
+    padding: 12px;
+    margin-bottom: 12px;
+    background-color: #fafafa;
+    border-radius: 8px;
+  }
+
+  .admin-table td {
+    padding: 8px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .admin-table td:nth-child(1)::before {
+    content: "Naziv:";
+    font-weight: bold;
+    margin-right: 8px;
+  }
+
+  .admin-table td:nth-child(2)::before {
+    content: "Slika:";
+    font-weight: bold;
+    margin-right: 8px;
+  }
+
+  .admin-table td:nth-child(3) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .admin-table td:nth-child(3)::before {
+    content: "Akcije:";
+    font-weight: bold;
+    margin-bottom: 4px;
+  }
+
+  .admin-edit,
+  .admin-delete {
+    width: 100%;
+    margin-right: 0;
+  }
+
+  .admin-header {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  .admin-sidebar {
+    display: none;
+    width: 100%;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .admin-sidebar.open {
+    display: block;
+  }
+
+  .admin-content {
+    padding: 20px;
+  }
+
+  .admin-actions-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .admin-count {
+    font-size: 15px;
+    justify-content: left;
+    margin-bottom: 12px;
+  }
+}

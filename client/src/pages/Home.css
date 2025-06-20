@@ -1,0 +1,122 @@
+.home-container {
+  font-family: 'Poppins', sans-serif;
+  padding: 0 20px 40px; /* skroz ukloni gornji padding */
+  background-color: #1e1a17; /* za slučaj da se slika ne učita */
+  min-height: 100vh;
+  color: #f9f6f1;
+  position: relative;
+  z-index: 1;
+  font-family: 'Quicksand', sans-serif;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 30px;
+  margin-top: 0; /* ukloni sav gornji razmak */
+}
+
+.logo {
+  max-width: 200px;
+  height: auto;
+  margin: 0 auto; /* centriraj i ukloni dodatni razmak */
+  display: block;
+  filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.3));
+}
+
+
+.kategorije-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* Dve kolone */
+  gap: 30px 40px; /* manji razmak između redova i kolona */
+  justify-content: center;
+  align-items: start;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.kategorija-card {
+  text-align: center;
+  padding: 16px;
+  border-radius: 16px; /* zaobljene ivice */
+  background-color: rgba(255, 255, 255, 0.05); /* blago svetlija pozadina */
+  border: 1px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.kategorija-card p {
+  font-family: 'Quicksand', sans-serif;
+  color: #f3e4c3;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+
+
+.kategorija-card:hover {
+  border: 1px solid #d2b48c; /* svetlobraon */
+  box-shadow: 0 0 12px rgba(210, 180, 140, 0.4); /* senka u istoj boji */
+  background-color: rgba(255, 255, 255, 0.08); /* malo svetlije */
+}
+
+
+.kategorija-card .slika {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background-size: cover;
+  background-position: center;
+  /*border: 2px solid #c7a86c; /* zlatna ivica */
+  margin: 0 auto 10px;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border 0.25s ease;
+  box-shadow: 0 0 20px rgba(242, 210, 141, 0.7); /* blaga aura i bez hovera */
+}
+
+.kategorija-card .slika:hover {
+  transform: scale(1.12);
+  box-shadow: 0 0 25px rgba(242, 210, 141, 0.7); /* pojačan glow */
+}
+
+
+
+.kategorija-card p {
+  margin: 0;
+  font-size: 16px;
+  color: #f3e4c3; /* svetlija bež-zlatna nijansa */
+  font-weight: 500;
+  font-family: 'Playfair Display', serif;
+  text-shadow: 0 0 3px rgba(0, 0, 0, 0.3);
+
+  letter-spacing: 0.5px;
+}
+
+.theme-selector {
+  margin: 10px auto 30px;
+  display: block;
+  padding: 8px 12px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  font-family: inherit;
+}
+
+
+
+@media (max-width: 768px) {
+  .kategorije-grid {
+    grid-template-columns: repeat(2, 1fr); /* Zadrži dve kolone */
+    gap: 24px;
+  }
+
+  .kategorija-card .slika {
+    width: 130px;
+    height: 130px;
+  }
+
+  .kategorija-card p {
+    font-size: 14px;
+  }
+}
+
+
