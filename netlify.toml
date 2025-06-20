@@ -1,0 +1,9 @@
+[build]
+  base = "client"
+  publish = "client/build"
+  command = "npm run build"
+
+[dev]
+  command = "npm start"
+  targetPort = 3000
+  port = 8888
