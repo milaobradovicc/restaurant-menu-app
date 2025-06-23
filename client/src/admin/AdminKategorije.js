@@ -38,8 +38,11 @@ function Kategorije() {
     : kategorije;
 
   useEffect(() => {
-    console.log("URL:", `${process.env.REACT_APP_BACKEND_URL}/api/categories`);
-    fetch(`${process.env.REACT_APP_BACKEND_URL}/api/categories`)
+    console.log(
+      "URL:",
+      `https://restaurant-menu-app-nzfr.onrender.com/api/categories`
+    );
+    fetch("https://restaurant-menu-app-nzfr.onrender.com/api/categories")
       .then((res) => res.json())
       .then((data) => {
         const sortirano = data.sort((a, b) => a.redniBroj - b.redniBroj);
@@ -48,7 +51,10 @@ function Kategorije() {
 
       .catch((err) => {
         console.error("Greška fetch:", err);
-        console.log("Fetchujem sa:", process.env.REACT_APP_BACKEND_URL);
+        console.log(
+          "Fetchujem sa:",
+          "https://restaurant-menu-app-nzfr.onrender.com"
+        );
         toast.error("Greška pri učitavanju kategorija");
       });
   }, []);
@@ -81,7 +87,7 @@ function Kategorije() {
       formData.append("slika", slikaFile);
     }
 
-    fetch(`${process.env.REACT_APP_BACKEND_URL}/api/categories`, {
+    fetch("https://restaurant-menu-app-nzfr.onrender.com/api/categories", {
       method: "POST",
       body: formData,
     })
@@ -106,7 +112,7 @@ function Kategorije() {
 
   const potvrdiBrisanje = () => {
     fetch(
-      `${process.env.REACT_APP_BACKEND_URL}/api/categories/${kategorijaZaBrisanje._id}`,
+      `https://restaurant-menu-app-nzfr.onrender.com/api/categories/${kategorijaZaBrisanje._id}`,
       {
         method: "DELETE",
       }
@@ -133,7 +139,7 @@ function Kategorije() {
     }
 
     fetch(
-      `${process.env.REACT_APP_BACKEND_URL}/api/categories/${kategorijaZaIzmenu._id}`,
+      `https://restaurant-menu-app-nzfr.onrender.com/api/categories/${kategorijaZaIzmenu._id}`,
       {
         method: "PUT",
         body: formData,
@@ -181,7 +187,7 @@ function Kategorije() {
               );
 
               fetch(
-                `${process.env.REACT_APP_BACKEND_URL}/api/categories/reorder`,
+                `https://restaurant-menu-app-nzfr.onrender.com/api/categories/reorder`,
                 {
                   method: "PUT",
                   headers: { "Content-Type": "application/json" },
@@ -253,7 +259,7 @@ function Kategorije() {
                       <img
                         src={
                           kat.slika.startsWith("/uploads/")
-                            ? `${process.env.REACT_APP_BACKEND_URL}${kat.slika}`
+                            ? `https://restaurant-menu-app-nzfr.onrender.com${kat.slika}`
                             : kat.slika
                         }
                         alt={kat.naziv}
