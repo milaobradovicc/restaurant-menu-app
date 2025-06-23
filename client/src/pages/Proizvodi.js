@@ -14,7 +14,9 @@ function Proizvodi() {
   const [popupSlika, setPopupSlika] = useState("");
 
   useEffect(() => {
-    fetch(`${process.env.REACT_APP_BACKEND_URL}/api/products/kategorija/${id}`)
+    fetch(
+      `https://restaurant-menu-app-nzfr.onrender.com/api/products/kategorija/${id}`
+    )
       .then((res) => res.json())
       .then((data) => {
         setProizvodi(data.proizvodi || []);
@@ -91,7 +93,7 @@ function Proizvodi() {
               src={
                 p.slika
                   ? p.slika.startsWith("/uploads/")
-                    ? `${process.env.REACT_APP_BACKEND_URL}${p.slika}`
+                    ? `https://restaurant-menu-app-nzfr.onrender.com${p.slika}`
                     : p.slika
                   : defaultImage
               }
@@ -101,7 +103,7 @@ function Proizvodi() {
                 setPopupSlika(
                   p.slika
                     ? p.slika.startsWith("/uploads/")
-                      ? `${process.env.REACT_APP_BACKEND_URL}${p.slika}`
+                      ? `https://restaurant-menu-app-nzfr.onrender.com${p.slika}`
                       : p.slika
                     : defaultImage
                 );

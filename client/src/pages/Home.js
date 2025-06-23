@@ -9,13 +9,13 @@ function Home() {
   const [kategorije, setKategorije] = useState([]);
   const [activeThemeKey, setActiveThemeKey] = useState("etno");
   const activeTheme = themes[activeThemeKey];
-  const slikaSrc = `${process.env.REACT_APP_BACKEND_URL}`;
+  const slikaSrc = `https://restaurant-menu-app-nzfr.onrender.com`;
   const navigate = useNavigate();
   const { id } = useParams(); // Ovo je ID kategorije
 
   useEffect(() => {
     const fetchData = () => {
-      fetch(`${process.env.REACT_APP_BACKEND_URL}/api/categories`)
+      fetch(`https://restaurant-menu-app-nzfr.onrender.com/api/categories`)
         .then((res) => res.json())
         .then((data) => {
           const sortirano = data.sort(
@@ -109,7 +109,7 @@ function Home() {
               className="slika"
               style={{
                 backgroundImage: kat.slika?.startsWith("/uploads/")
-                  ? `url(${process.env.REACT_APP_BACKEND_URL}${kat.slika})`
+                  ? `https://restaurant-menu-app-nzfr.onrender.com${kat.slika})`
                   : `url(${kat.slika})`,
                 border: `2px solid ${activeTheme.borderColor}`,
                 boxShadow: `0 0 10px ${activeTheme.glowColor}`,
