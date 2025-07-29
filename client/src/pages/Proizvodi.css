@@ -27,7 +27,8 @@
   border-bottom: 2px solid #eee;
   border-radius: 8px;
   margin-bottom: 14px;
-  transition: transform 0.3s ease; /* 👈 mora postojati da bi hover radio */
+  transition: transform 0.3s ease;
+  /* 👈 mora postojati da bi hover radio */
 }
 
 .proizvod:hover {
@@ -105,7 +106,8 @@
   font-size: 15px;
   font-style: italic;
   font-weight: 500;
-  color: #b02e0c; /* lepša tamno crvena nijansa */
+  color: #b02e0c;
+  /* lepša tamno crvena nijansa */
   margin-top: 8px;
   transition: color 0.3s ease;
 }
@@ -158,4 +160,42 @@
   align-items: center;
   justify-content: center;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.proizvod.nedostupan {
+  opacity: 0.5;
+  position: relative;
+}
+
+.proizvod .nedostupan-overlay {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background-color: #a52828;
+  color: white;
+  padding: 4px 8px;
+  margin-bottom: 4px;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 12px;
+  z-index: 10;
+}
+
+.novo-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background-color: #ff5252;
+  color: white;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-weight: bold;
+  z-index: 2;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.proizvod {
+  position: relative;
+  /* važno za badge poziciju */
 }

@@ -4,18 +4,20 @@ import "./Home.css";
 import { themes } from "../themes";
 import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
+import { FiMail, FiPhone, FiUser, FiGlobe } from "react-icons/fi";
+
 
 function Home() {
   const [kategorije, setKategorije] = useState([]);
   const [activeThemeKey, setActiveThemeKey] = useState("etno");
   const activeTheme = themes[activeThemeKey];
-  const slikaSrc = `https://restaurant-menu-app-nzfr.onrender.com`;
+  const slikaSrc = `${process.env.REACT_APP_BACKEND_URL}`;
   const navigate = useNavigate();
   const { id } = useParams(); // Ovo je ID kategorije
 
   useEffect(() => {
     const fetchData = () => {
-      fetch(`https://restaurant-menu-app-nzfr.onrender.com/api/categories`)
+      fetch(`${process.env.REACT_APP_BACKEND_URL}/api/categories`)
         .then((res) => res.json())
         .then((data) => {
           const sortirano = data.sort(
@@ -68,17 +70,6 @@ function Home() {
         color: activeTheme.textColor,
       }}
     >
-      <select
-        value={activeThemeKey}
-        onChange={(e) => setActiveThemeKey(e.target.value)}
-        className="theme-selector"
-      >
-        {Object.keys(themes).map((key) => (
-          <option key={key} value={key}>
-            {themes[key].name}
-          </option>
-        ))}
-      </select>
 
       <header className="header">
         <motion.img
@@ -109,7 +100,7 @@ function Home() {
               className="slika"
               style={{
                 backgroundImage: kat.slika?.startsWith("/uploads/")
-                  ? `https://restaurant-menu-app-nzfr.onrender.com${kat.slika})`
+                  ? `url(${encodeURI(process.env.REACT_APP_BACKEND_URL + kat.slika)})`
                   : `url(${kat.slika})`,
                 border: `2px solid ${activeTheme.borderColor}`,
                 boxShadow: `0 0 10px ${activeTheme.glowColor}`,
@@ -122,6 +113,25 @@ function Home() {
           </motion.div>
         ))}
       </motion.div>
+      <footer className="footer">
+        <p><FiUser style={{ marginRight: 6 }} /> Mila Obradović</p>
+        <p>
+          <FiMail style={{ marginRight: 6 }} />
+          <a href="mailto:milaobradovic2000@gmail.com">milaobradovic2000@gmail.com</a>
+        </p>
+        <p>
+          <FiPhone style={{ marginRight: 6 }} />
+          <a href="tel:+38166377737">+381 66 377 737</a>
+        </p>
+        <p>
+          <FiGlobe style={{ marginRight: 6 }} />
+          <a href="https://www.milaobradovic.dev" target="_blank" rel="noopener noreferrer">
+            www.milaobradovic.dev
+          </a>
+        </p>
+      </footer>
+
+
     </div>
   );
 }

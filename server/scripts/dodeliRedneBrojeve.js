@@ -1,7 +1,9 @@
-require("dotenv").config(); // mora ići na sam vrh
+require("dotenv").config();
 
 const mongoose = require("mongoose");
-const Category = require("../models/Category"); // prilagodi putanju
+const Product = require("../models/Product"); // <- OVA LINIJA je obavezna
+
+const MONGO_URL = process.env.MONGO_URL;
 
 mongoose.connect(MONGO_URL, {
   useNewUrlParser: true,
@@ -9,11 +11,18 @@ mongoose.connect(MONGO_URL, {
 });
 
 mongoose.connection.once("open", async () => {
-  const kategorije = await Category.find();
-  for (let i = 0; i < kategorije.length; i++) {
-    kategorije[i].redniBroj = i;
-    await kategorije[i].save();
+  try {
+    const proizvodi = await Product.find().sort({ kategorija: 1, _id: 1 });
+
+    for (let i = 0; i < proizvodi.length; i++) {
+      proizvodi[i].redniBroj = i;
+      await proizvodi[i].save();
+    }
+
+    console.log("✅ Redni brojevi uspešno dodeljeni!");
+  } catch (err) {
+    console.error("❌ Greška:", err);
+  } finally {
+    mongoose.connection.close();
   }
-  console.log("✅ Redni brojevi uspešno dodeljeni!");
-  mongoose.connection.close();
 });

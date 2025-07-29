@@ -5,6 +5,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { FaSort } from "react-icons/fa";
 import { FiPlus } from "react-icons/fi";
 import { FiList } from "react-icons/fi";
+import { motion } from "framer-motion";
 import {
   DndContext,
   closestCenter,
@@ -32,17 +33,15 @@ function Kategorije() {
   const [novaSlikaZaIzmenu, setNovaSlikaZaIzmenu] = useState(null);
   const [previewSlika, setPreviewSlika] = useState(null);
   const [urediRaspored, setUrediRaspored] = useState(false);
+  const [showScrollTop, setShowScrollTop] = useState(false);
   const [reorderedKategorije, setReorderedKategorije] = useState([]);
   const zaSlanje = reorderedKategorije.length
     ? reorderedKategorije
     : kategorije;
 
   useEffect(() => {
-    console.log(
-      "URL:",
-      `https://restaurant-menu-app-nzfr.onrender.com/api/categories`
-    );
-    fetch("https://restaurant-menu-app-nzfr.onrender.com/api/categories")
+    console.log("URL:", `${process.env.REACT_APP_BACKEND_URL}/api/categories`);
+    fetch(`${process.env.REACT_APP_BACKEND_URL}/api/categories`)
       .then((res) => res.json())
       .then((data) => {
         const sortirano = data.sort((a, b) => a.redniBroj - b.redniBroj);
@@ -51,12 +50,18 @@ function Kategorije() {
 
       .catch((err) => {
         console.error("Greška fetch:", err);
-        console.log(
-          "Fetchujem sa:",
-          "https://restaurant-menu-app-nzfr.onrender.com"
-        );
+        console.log("Fetchujem sa:", process.env.REACT_APP_BACKEND_URL);
         toast.error("Greška pri učitavanju kategorija");
       });
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 300); // prikazuje dugme posle 300px skrola
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const handleInputChange = (e) => {
@@ -87,7 +92,7 @@ function Kategorije() {
       formData.append("slika", slikaFile);
     }
 
-    fetch("https://restaurant-menu-app-nzfr.onrender.com/api/categories", {
+    fetch(`${process.env.REACT_APP_BACKEND_URL}/api/categories`, {
       method: "POST",
       body: formData,
     })
@@ -112,7 +117,7 @@ function Kategorije() {
 
   const potvrdiBrisanje = () => {
     fetch(
-      `https://restaurant-menu-app-nzfr.onrender.com/api/categories/${kategorijaZaBrisanje._id}`,
+      `${process.env.REACT_APP_BACKEND_URL}/api/categories/${kategorijaZaBrisanje._id}`,
       {
         method: "DELETE",
       }
@@ -139,7 +144,7 @@ function Kategorije() {
     }
 
     fetch(
-      `https://restaurant-menu-app-nzfr.onrender.com/api/categories/${kategorijaZaIzmenu._id}`,
+      `${process.env.REACT_APP_BACKEND_URL}/api/categories/${kategorijaZaIzmenu._id}`,
       {
         method: "PUT",
         body: formData,
@@ -187,7 +192,7 @@ function Kategorije() {
               );
 
               fetch(
-                `https://restaurant-menu-app-nzfr.onrender.com/api/categories/reorder`,
+                `${process.env.REACT_APP_BACKEND_URL}/api/categories/reorder`,
                 {
                   method: "PUT",
                   headers: { "Content-Type": "application/json" },
@@ -227,7 +232,7 @@ function Kategorije() {
           <tr>
             <th>Naziv</th>
             <th>Slika</th>
-            <th>Akcije</th>
+            <th></th>
           </tr>
         </thead>
         <DndContext
@@ -253,26 +258,32 @@ function Kategorije() {
                   index={index}
                   urediRaspored={urediRaspored}
                 >
-                  <td>{kat.naziv || "(bez naziva)"}</td>
-                  <td>
+                  <td data-label="Naziv">{kat.naziv || "(bez naziva)"}</td>
+                  <td data-label="Slika">
                     {kat.slika ? (
                       <img
                         src={
-                          kat.slika.startsWith("/uploads/")
-                            ? `https://restaurant-menu-app-nzfr.onrender.com${kat.slika}`
+                          kat.slika.startsWith("/uploads/kategorije/")
+                            ? `${process.env.REACT_APP_BACKEND_URL}${kat.slika}`
                             : kat.slika
                         }
                         alt={kat.naziv}
                         width="60"
                         className="admin-thumb"
-                        onClick={() => setPreviewSlika(kat.slika)}
+                        onClick={() =>
+                          setPreviewSlika(
+                            kat.slika?.startsWith("/uploads/")
+                              ? `${process.env.REACT_APP_BACKEND_URL}${kat.slika}`
+                              : kat.slika
+                          )
+                        }
                         style={{ cursor: "pointer", borderRadius: "6px" }}
                       />
                     ) : (
                       <span style={{ color: "#888" }}>Nema slike</span>
                     )}
                   </td>
-                  <td className="admin-actions-cell">
+                  <td data-label="" className="admin-actions-cell">
                     <button
                       className="admin-edit"
                       onClick={() => setKategorijaZaIzmenu(kat)}
@@ -395,16 +406,31 @@ function Kategorije() {
       {previewSlika && (
         <div
           className="slika-preview-overlay"
-          onClick={() => setPreviewSlika(null)}
+          onClick={() =>
+            setPreviewSlika(null)
+          }
         >
           <div
             className="slika-preview-box"
             onClick={(e) => e.stopPropagation()}
           >
-            <img src={previewSlika} alt="Pregled" />
+            <img src={encodeURI(previewSlika)} alt="Pregled" />
+
             <button onClick={() => setPreviewSlika(null)}>Zatvori</button>
           </div>
         </div>
+      )}
+
+      {showScrollTop && (
+        <motion.button
+          className="scroll-top"
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          initial={{ opacity: 0, scale: 0.5 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+        >
+          ↑
+        </motion.button>
       )}
     </div>
   );

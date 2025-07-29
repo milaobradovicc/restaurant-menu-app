@@ -10,6 +10,10 @@ const ProductSchema = new mongoose.Schema({
     ref: "Category",
     required: true,
   },
+  redniBroj: Number,
+  nedostupan: Boolean,
+  novo: { type: Boolean, default: false },
+
 });
 
 module.exports = mongoose.model("Product", ProductSchema);

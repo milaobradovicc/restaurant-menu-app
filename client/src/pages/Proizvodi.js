@@ -14,9 +14,7 @@ function Proizvodi() {
   const [popupSlika, setPopupSlika] = useState("");
 
   useEffect(() => {
-    fetch(
-      `https://restaurant-menu-app-nzfr.onrender.com/api/products/kategorija/${id}`
-    )
+    fetch(`${process.env.REACT_APP_BACKEND_URL}/api/products/kategorija/${id}`)
       .then((res) => res.json())
       .then((data) => {
         setProizvodi(data.proizvodi || []);
@@ -78,12 +76,17 @@ function Proizvodi() {
       <div className="proizvodi-lista">
         {proizvodi.map((p, index) => (
           <motion.div
-            className="proizvod"
+            className={`proizvod ${p.nedostupan ? "nedostupan" : ""}`}
             key={p._id}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: index * 0.15 }}
           >
+            {p.nedostupan && (
+              <div className="nedostupan-overlay">Trenutno nedostupno</div>
+            )}
+            {p.novo && <div className="novo-badge">Novo</div>}
+
             <div className="proizvod-info">
               <h3>{p.naziv}</h3>
               <p>{p.opis}</p>
@@ -93,7 +96,7 @@ function Proizvodi() {
               src={
                 p.slika
                   ? p.slika.startsWith("/uploads/")
-                    ? `https://restaurant-menu-app-nzfr.onrender.com${p.slika}`
+                    ? `${process.env.REACT_APP_BACKEND_URL}${p.slika}`
                     : p.slika
                   : defaultImage
               }
@@ -101,18 +104,19 @@ function Proizvodi() {
               className="proizvod-slika"
               onClick={() => {
                 setPopupSlika(
-                  p.slika
-                    ? p.slika.startsWith("/uploads/")
-                      ? `https://restaurant-menu-app-nzfr.onrender.com${p.slika}`
-                      : p.slika
-                    : defaultImage
+                  p.slika?.startsWith("/uploads/proizvodi/")
+                    ? `${process.env.REACT_APP_BACKEND_URL}${p.slika}`
+                    : p.slika || defaultImage
                 );
                 setPrikaziPopup(true);
               }}
             />
           </motion.div>
+
+
         ))}
       </div>
+
 
       {showScrollTop && (
         <motion.button
