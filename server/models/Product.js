@@ -10,10 +10,12 @@ const ProductSchema = new mongoose.Schema({
     ref: "Category",
     required: true,
   },
-  redniBroj: Number,
-  nedostupan: Boolean,
+  redniBroj: { type: Number, default: 0, index: true },
+  nedostupan: { type: Boolean, default: false },
   novo: { type: Boolean, default: false },
 
 });
+
+ProductSchema.index({ kategorijaId: 1, redniBroj: 1 });
 
 module.exports = mongoose.model("Product", ProductSchema);

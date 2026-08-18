@@ -1,177 +1,95 @@
 const express = require("express");
-const router = express.Router();
-const multer = require("multer");
+const mongoose = require("mongoose");
 const path = require("path");
-const fs = require("fs");
-
 const Category = require("../models/Category");
 const Product = require("../models/Product");
+const verifyToken = require("../middleware/authMiddleware");
+const { createImageUpload } = require("../middleware/imageUpload");
+const { removeUpload } = require("../utils/files");
 
-const proizvodiPath = path.join(__dirname, "../uploads/proizvodi");
+const router = express.Router();
+const uploadImage = createImageUpload("slika", path.join(__dirname, "../uploads/proizvodi"), "/uploads/proizvodi");
+const validId = (value) => mongoose.isValidObjectId(value);
 
-if (!fs.existsSync(proizvodiPath)) {
-  fs.mkdirSync(proizvodiPath, { recursive: true });
+router.get("/kategorija/:id", async (req, res) => {
+  if (!validId(req.params.id)) return res.status(400).json({ message: "Neispravan ID kategorije." });
+  try {
+    const [proizvodi, kategorija] = await Promise.all([
+      Product.find({ kategorijaId: req.params.id }).sort("redniBroj").lean(),
+      Category.findById(req.params.id).select("naziv").lean(),
+    ]);
+    if (!kategorija) return res.status(404).json({ message: "Kategorija nije pronadjena." });
+    return res.json({ kategorija: kategorija.naziv, proizvodi });
+  } catch (error) {
+    return res.status(500).json({ message: "Greska pri ucitavanju proizvoda." });
+  }
+});
+
+router.put("/reorder", verifyToken, async (req, res) => {
+  const proizvodi = req.body.proizvodi;
+  if (!Array.isArray(proizvodi) || !proizvodi.length || proizvodi.some((p) => !validId(p._id))) {
+    return res.status(400).json({ message: "Neispravan raspored proizvoda." });
+  }
+  try {
+    await Product.bulkWrite(proizvodi.map((p, index) => ({ updateOne: { filter: { _id: p._id }, update: { $set: { redniBroj: index } } } })));
+    return res.json({ message: "Raspored je sacuvan." });
+  } catch (error) { return res.status(500).json({ message: "Greska pri cuvanju rasporeda." }); }
+});
+
+router.patch("/:id/toggle-novo", verifyToken, async (req, res) => toggleField(req, res, "novo"));
+router.patch("/:id/toggle", verifyToken, async (req, res) => toggleField(req, res, "nedostupan"));
+
+async function toggleField(req, res, field) {
+  if (!validId(req.params.id)) return res.status(400).json({ message: "Neispravan ID proizvoda." });
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.status(404).json({ message: "Proizvod nije pronadjen." });
+    product[field] = !product[field];
+    await product.save();
+    return res.json(product);
+  } catch (error) { return res.status(500).json({ message: "Greska pri izmeni proizvoda." }); }
 }
 
-
-// 📁 Konfiguracija Multer-a
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, proizvodiPath),
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    const base = path.basename(file.originalname, ext);
-    cb(null, `${base}-${Date.now()}${ext}`);
-  },
-});
-const upload = multer({ storage });
-
-/// PUT /api/products/reorder
-router.put("/reorder", async (req, res) => {
+router.post("/", verifyToken, ...uploadImage, async (req, res) => {
+  const naziv = String(req.body.naziv || "").trim();
+  const kategorijaId = String(req.body.kategorijaId || "").trim();
+  const cena = Number(req.body.cena);
+  if (!naziv || !validId(kategorijaId) || !Number.isFinite(cena) || cena < 0) return res.status(400).json({ message: "Naziv, validna cena i kategorija su obavezni." });
   try {
-    const { proizvodi } = req.body;
-
-    if (!Array.isArray(proizvodi) || proizvodi.length === 0) {
-      return res.status(400).json({ error: "Nema podataka za ažuriranje" });
-    }
-
-    // Izvuci kategorijaId iz prvog proizvoda
-    const kategorijaId = proizvodi[0].kategorijaId;
-
-    // Proveri da svi pripadaju istoj kategoriji (opciono ali korisno)
-    const razliciteKategorije = proizvodi.some(
-      (p) => p.kategorijaId !== kategorijaId
-    );
-    if (razliciteKategorije) {
-      return res.status(400).json({ error: "Svi proizvodi moraju biti iz iste kategorije" });
-    }
-
-    // Ažuriraj redne brojeve po redu
-    for (let i = 0; i < proizvodi.length; i++) {
-      await Product.findByIdAndUpdate(proizvodi[i]._id, { redniBroj: i });
-    }
-
-    res.json({ message: "Raspored uspešno sačuvan" });
-  } catch (err) {
-    console.error("Greška pri reorder-u:", err);
-    res.status(500).json({ error: "Greška pri čuvanju rasporeda" });
+    const poslednji = await Product.findOne({ kategorijaId }).sort("-redniBroj").select("redniBroj").lean();
+    const product = await Product.create({ naziv, opis: String(req.body.opis || "").trim(), cena, kategorijaId, redniBroj: (poslednji?.redniBroj ?? -1) + 1, slika: req.optimizedImage?.path || "" });
+    return res.status(201).json(product);
+  } catch (error) {
+    await removeUpload(req.optimizedImage?.path);
+    return res.status(500).json({ message: "Greska pri dodavanju proizvoda." });
   }
 });
 
-router.patch("/:id/toggle-novo", async (req, res) => {
+router.put("/:id", verifyToken, ...uploadImage, async (req, res) => {
+  if (!validId(req.params.id)) return res.status(400).json({ message: "Neispravan ID proizvoda." });
+  const cena = Number(req.body.cena);
+  if (!String(req.body.naziv || "").trim() || !Number.isFinite(cena) || cena < 0) return res.status(400).json({ message: "Naziv i validna cena su obavezni." });
   try {
-    const proizvod = await Product.findById(req.params.id);
-    if (!proizvod) return res.status(404).json({ message: "Not found" });
-
-    proizvod.novo = !proizvod.novo;
-    await proizvod.save();
-    res.json(proizvod);
-  } catch (err) {
-    console.error("Greška pri toggle-novo:", err);
-    res.status(500).json({ message: "Greška na serveru" });
-  }
+    const existing = await Product.findById(req.params.id);
+    if (!existing) { await removeUpload(req.optimizedImage?.path); return res.status(404).json({ message: "Proizvod nije pronadjen." }); }
+    const oldImage = existing.slika;
+    existing.naziv = req.body.naziv.trim(); existing.opis = String(req.body.opis || "").trim(); existing.cena = cena;
+    if (validId(req.body.kategorijaId)) existing.kategorijaId = req.body.kategorijaId;
+    if (req.optimizedImage) existing.slika = req.optimizedImage.path;
+    await existing.save();
+    if (req.optimizedImage) await removeUpload(oldImage);
+    return res.json(existing);
+  } catch (error) { await removeUpload(req.optimizedImage?.path); return res.status(500).json({ message: "Greska pri izmeni proizvoda." }); }
 });
 
-
-
-// POST /api/products  ✅ Dodavanje proizvoda
-router.post("/", upload.single("slika"), async (req, res) => {
+router.delete("/:id", verifyToken, async (req, res) => {
+  if (!validId(req.params.id)) return res.status(400).json({ message: "Neispravan ID proizvoda." });
   try {
-    const { naziv, opis, cena, kategorijaId } = req.body;
-
-    if (!naziv || !cena || !kategorijaId) {
-      return res.status(400).json({ message: "Naziv, cena i kategorija su obavezni" });
-    }
-
-    // 🔢 Automatski redniBroj po kategoriji
-    const poslednji = await Product.findOne({ kategorijaId }).sort("-redniBroj");
-    const sledeciBroj = poslednji ? poslednji.redniBroj + 1 : 1;
-
-    const noviProizvod = new Product({
-      naziv,
-      opis,
-      cena,
-      kategorijaId: kategorijaId.trim(),
-      redniBroj: sledeciBroj,
-      slika: req.file ? `/uploads/proizvodi/${req.file.filename}` : "/images/logoRestoran1.png",
-
-    });
-
-    const sacuvan = await noviProizvod.save();
-    res.status(201).json(sacuvan);
-  } catch (err) {
-    console.error("❌ Greška pri čuvanju proizvoda:", err);
-    res.status(500).json({ error: "Greška pri dodavanju proizvoda" });
-  }
-});
-
-
-// GET proizvodi za određenu kategoriju
-router.get("/kategorija/:id", async (req, res) => {
-  try {
-    const cleanId = req.params.id.trim(); // očisti višak
-    console.log("Primljen ID kategorije:", req.params.id);
-
-    const proizvodi = await Product.find({ kategorijaId: cleanId }).sort("redniBroj");
-    const kategorija = await Category.findById(cleanId);
-
-    console.log("Nađeni proizvodi:", proizvodi);
-    console.log("Kategorija:", kategorija);
-
-    res.json({
-      kategorija: kategorija?.naziv || "Kategorija",
-      proizvodi,
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Greška pri dohvatanju proizvoda" });
-  }
-});
-
-// PATCH /api/products/:id/toggle
-router.patch("/:id/toggle", async (req, res) => {
-  const proizvod = await Product.findById(req.params.id);
-  if (!proizvod) return res.status(404).json({ message: "Not found" });
-  proizvod.nedostupan = !proizvod.nedostupan;
-  await proizvod.save();
-  res.json(proizvod);
-});
-
-// PUT /api/products/:id – izmena proizvoda
-router.put("/:id", upload.single("slika"), async (req, res) => {
-  try {
-    const update = {
-      naziv: req.body.naziv,
-      opis: req.body.opis,
-      cena: req.body.cena,
-    };
-
-    if (req.body.kategorijaId) {
-      update.kategorijaId = req.body.kategorijaId;
-    }
-
-    if (req.file) {
-      update.slika = `/uploads/proizvodi/${req.file.filename}`;
-    }
-
-    const updated = await Product.findByIdAndUpdate(req.params.id, update, {
-      new: true,
-    });
-    res.json(updated);
-  } catch (err) {
-    console.error("Greška pri izmeni:", err);
-    res.status(500).json({ error: "Greška pri izmeni proizvoda" });
-  }
-});
-
-// DELETE /api/products/:id – brisanje
-router.delete("/:id", async (req, res) => {
-  try {
-    await Product.findByIdAndDelete(req.params.id);
-    res.status(200).json({ message: "Proizvod obrisan" });
-  } catch (err) {
-    console.error("Greška pri brisanju:", err);
-    res.status(500).json({ error: "Greška pri brisanju proizvoda" });
-  }
+    const product = await Product.findByIdAndDelete(req.params.id);
+    if (!product) return res.status(404).json({ message: "Proizvod nije pronadjen." });
+    await removeUpload(product.slika);
+    return res.json({ message: "Proizvod je obrisan." });
+  } catch (error) { return res.status(500).json({ message: "Greska pri brisanju proizvoda." }); }
 });
 
 module.exports = router;

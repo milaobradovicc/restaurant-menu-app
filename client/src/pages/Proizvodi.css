@@ -199,3 +199,6 @@
   position: relative;
   /* važno za badge poziciju */
 }
+
+.image-button { border: 0; padding: 0; background: transparent; }
+.page-status { text-align: center; padding: 24px; color: #555; }

@@ -6,7 +6,7 @@ const Product = require("./models/Product");
 const Category = require("./models/Category");
 
 mongoose
-    .connect(process.env.MONGO_URL, {
+    .connect(process.env.MONGO_URI, {
         useNewUrlParser: true,
         useUnifiedTopology: true,
     })

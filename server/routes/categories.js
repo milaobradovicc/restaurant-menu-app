@@ -1,122 +1,63 @@
 const express = require("express");
-const router = express.Router();
-const multer = require("multer");
+const mongoose = require("mongoose");
 const path = require("path");
-const fs = require("fs");
 const Category = require("../models/Category");
+const Product = require("../models/Product");
+const verifyToken = require("../middleware/authMiddleware");
+const { createImageUpload } = require("../middleware/imageUpload");
+const { removeUpload } = require("../utils/files");
 
-// 📁 Putanja za slike kategorija
-const kategorijePath = path.join(__dirname, "../uploads/kategorije");
+const router = express.Router();
+const uploadImage = createImageUpload("slika", path.join(__dirname, "../uploads/kategorije"), "/uploads/kategorije");
+const validId = (value) => mongoose.isValidObjectId(value);
 
-// ⛏️ Kreiraj folder ako ne postoji
-if (!fs.existsSync(kategorijePath)) {
-  fs.mkdirSync(kategorijePath, { recursive: true });
-}
-
-// 🖼️ Konfiguracija za multer
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, kategorijePath);
-  },
-  filename: function (req, file, cb) {
-    // zadrži originalno ime, ali dodaj timestamp da ne dođe do konflikta
-    const ext = path.extname(file.originalname);
-    const base = path.basename(file.originalname, ext);
-    const unique = Date.now();
-    cb(null, `${base}-${unique}${ext}`);
-  },
+router.get("/", async (_req, res) => {
+  try { return res.json(await Category.find().sort("redniBroj").lean()); }
+  catch (error) { return res.status(500).json({ message: "Greska pri ucitavanju kategorija." }); }
 });
 
-const upload = multer({ storage });
-
-
-// PUT /api/categories/reorder
-router.put("/reorder", async (req, res) => {
-  const noviRaspored = req.body.kategorije; // [{ _id, redniBroj }, ...]
-
+router.put("/reorder", verifyToken, async (req, res) => {
+  const kategorije = req.body.kategorije;
+  if (!Array.isArray(kategorije) || !kategorije.length || kategorije.some((item) => !validId(item._id))) return res.status(400).json({ message: "Neispravan raspored kategorija." });
   try {
-    for (let i = 0; i < noviRaspored.length; i++) {
-      const { _id, redniBroj } = noviRaspored[i];
-      await Category.findByIdAndUpdate(_id, { redniBroj });
-    }
-    res.json({ message: "Raspored sačuvan" });
-  } catch (err) {
-    console.error("❌ Greška u reorder:", err);
-    res.status(500).json({ error: "Greška pri čuvanju rasporeda" });
-  }
+    await Category.bulkWrite(kategorije.map((item, index) => ({ updateOne: { filter: { _id: item._id }, update: { $set: { redniBroj: Number.isFinite(Number(item.redniBroj)) ? Number(item.redniBroj) : index } } } })));
+    return res.json({ message: "Raspored je sacuvan." });
+  } catch (error) { return res.status(500).json({ message: "Greska pri cuvanju rasporeda." }); }
 });
 
-// 📥 POST /api/categories – Dodavanje kategorije
-router.post("/", upload.single("slika"), async (req, res) => {
+router.post("/", verifyToken, ...uploadImage, async (req, res) => {
+  const naziv = String(req.body.naziv || "").trim();
+  if (!naziv) { await removeUpload(req.optimizedImage?.path); return res.status(400).json({ message: "Naziv je obavezan." }); }
   try {
-    const { naziv } = req.body;
-    const slika = req.file ? `/uploads/kategorije/${req.file.filename}` : "";
-
-    if (!naziv) {
-      return res.status(400).json({ message: "Naziv je obavezan" });
-    }
-
-    // 🔢 Automatski redniBroj
-    const poslednjaKategorija = await Category.findOne().sort("-redniBroj");
-    const sledeciBroj = poslednjaKategorija ? poslednjaKategorija.redniBroj + 1 : 1;
-
-    const novaKategorija = new Category({
-      naziv,
-      slika,
-      redniBroj: sledeciBroj,
-    });
-
-    await novaKategorija.save();
-    res.status(201).json(novaKategorija);
-  } catch (err) {
-    console.error("❌ Greška pri dodavanju kategorije:", err);
-    res.status(500).json({ message: "Server error" });
-  }
+    const last = await Category.findOne().sort("-redniBroj").select("redniBroj").lean();
+    return res.status(201).json(await Category.create({ naziv, slika: req.optimizedImage?.path || "", redniBroj: (last?.redniBroj ?? -1) + 1 }));
+  } catch (error) { await removeUpload(req.optimizedImage?.path); return res.status(500).json({ message: "Greska pri dodavanju kategorije." }); }
 });
 
-
-
-// 📤 GET /api/categories – Dohvati sve
-router.get("/", async (req, res) => {
+router.put("/:id", verifyToken, ...uploadImage, async (req, res) => {
+  const naziv = String(req.body.naziv || "").trim();
+  if (!validId(req.params.id) || !naziv) { await removeUpload(req.optimizedImage?.path); return res.status(400).json({ message: "Neispravni podaci kategorije." }); }
   try {
-    const kategorije = await Category.find();
-    res.json(kategorije);
-  } catch (err) {
-    res.status(500).json({ message: "Greška pri učitavanju" });
-  }
+    const category = await Category.findById(req.params.id);
+    if (!category) { await removeUpload(req.optimizedImage?.path); return res.status(404).json({ message: "Kategorija nije pronadjena." }); }
+    const oldImage = category.slika;
+    category.naziv = naziv;
+    if (req.optimizedImage) category.slika = req.optimizedImage.path;
+    await category.save();
+    if (req.optimizedImage) await removeUpload(oldImage);
+    return res.json(category);
+  } catch (error) { await removeUpload(req.optimizedImage?.path); return res.status(500).json({ message: "Greska pri izmeni kategorije." }); }
 });
 
-//DELETE /api/categories - Izbrisi kategoriju
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", verifyToken, async (req, res) => {
+  if (!validId(req.params.id)) return res.status(400).json({ message: "Neispravan ID kategorije." });
   try {
-    await Category.findByIdAndDelete(req.params.id);
-    res.status(200).json({ poruka: "Kategorija obrisana" });
-  } catch (err) {
-    res.status(500).json({ poruka: "Greška pri brisanju" });
-  }
-});
-
-
-//EDIT - Izmeni kategoriju
-router.put("/:id", upload.single("slika"), async (req, res) => {
-  try {
-    const { naziv } = req.body;
-    const update = { naziv };
-
-    if (req.file) {
-      update.slika = `/uploads/kategorije/${req.file.filename}`;
-
-    }
-
-    const updated = await Category.findByIdAndUpdate(req.params.id, update, {
-      new: true,
-    });
-
-    res.json(updated);
-  } catch (err) {
-    console.error("Greška pri izmeni:", err);
-    res.status(500).json({ poruka: "Greška pri izmeni" });
-  }
+    const [category, products] = await Promise.all([Category.findById(req.params.id), Product.find({ kategorijaId: req.params.id }).select("slika")]);
+    if (!category) return res.status(404).json({ message: "Kategorija nije pronadjena." });
+    await Promise.all([Category.deleteOne({ _id: category._id }), Product.deleteMany({ kategorijaId: category._id })]);
+    await Promise.allSettled([removeUpload(category.slika), ...products.map((product) => removeUpload(product.slika))]);
+    return res.json({ message: "Kategorija i njeni proizvodi su obrisani." });
+  } catch (error) { return res.status(500).json({ message: "Greska pri brisanju kategorije." }); }
 });
 
 module.exports = router;

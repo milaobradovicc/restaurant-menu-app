@@ -18,6 +18,21 @@
   /* ukloni sav gornji razmak */
 }
 
+.user-icon {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  font-size: 28px;
+  color: white;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.user-icon:hover {
+  transform: scale(1.2);
+}
+
+
 .footer {
   font-size: 10px;
   line-height: 1.6;
@@ -103,8 +118,7 @@
   width: 160px;
   height: 160px;
   border-radius: 50%;
-  background-size: cover;
-  background-position: center;
+  object-fit: cover;
   /*border: 2px solid #c7a86c; /* zlatna ivica */
   margin: 0 auto 10px;
   transition: transform 0.25s ease, box-shadow 0.25s ease, border 0.25s ease;
@@ -161,3 +175,12 @@
     font-size: 14px;
   }
 }
+
+.user-icon-button, .image-button {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.page-status { text-align: center; padding: 24px; }

@@ -742,3 +742,66 @@
 
 
 }
+
+.admin-logo-page {
+  padding: 30px;
+}
+
+.admin-logo-preview {
+  width: 180px;
+  margin-top: 10px;
+  border-radius: 8px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+}
+
+.admin-logo-preview-box {
+  margin-top: 20px;
+}
+
+.admin-button {
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: #0074D9;
+  color: #fff;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.admin-button:hover {
+  background-color: #005fa3;
+}
+
+.admin-logo-row {
+  display: flex;
+  align-items: center;
+  /* centrirano po visini */
+  gap: 20px;
+  /* razmak između slike i dugmeta */
+  margin-top: 10px;
+}
+
+.admin-logo-preview {
+  width: 180px;
+  border-radius: 8px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+}
+
+.buttonSave {
+  background-color: #2ecc71;
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 5px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.admin-logout {
+  margin-left: auto;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+  padding: 7px 12px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}

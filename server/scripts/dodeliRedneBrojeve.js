@@ -3,7 +3,7 @@ require("dotenv").config();
 const mongoose = require("mongoose");
 const Product = require("../models/Product"); // <- OVA LINIJA je obavezna
 
-const MONGO_URL = process.env.MONGO_URL;
+const MONGO_URL = process.env.MONGO_URI;
 
 mongoose.connect(MONGO_URL, {
   useNewUrlParser: true,
